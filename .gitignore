@@ -1,0 +1,6 @@
+.agent
+**__pycache__
+augview.egg-info
+augview/frontend/node_modules
+augview/frontend/dist
+augview/frontend/build
