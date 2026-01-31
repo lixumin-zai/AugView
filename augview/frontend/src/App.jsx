@@ -39,7 +39,22 @@ function App() {
     const [nodes, setNodes, onNodesChange] = useNodesState([])
     const [edges, setEdges, onEdgesChange] = useEdgesState([])
     const nodePositionsRef = useRef({}) // Store user-dragged positions
+    const nodeSizesRef = useRef({}) // Store user-resized dimensions
     const initializedRef = useRef(false) // Track if initial layout has been set
+
+    // Custom onNodesChange to capture resize events
+    const handleNodesChange = useCallback((changes) => {
+        // Capture dimension changes from resize
+        changes.forEach(change => {
+            if (change.type === 'dimensions' && change.dimensions) {
+                nodeSizesRef.current[change.id] = {
+                    width: change.dimensions.width,
+                    height: change.dimensions.height
+                }
+            }
+        })
+        onNodesChange(changes)
+    }, [onNodesChange])
 
     // WebSocket connection
     useEffect(() => {
@@ -184,12 +199,18 @@ function App() {
             return nodePositionsRef.current[nodeId] || defaultPos
         }
 
+        // Get stored size for a node (if user resized it)
+        const getNodeStyle = (nodeId) => {
+            return nodeSizesRef.current[nodeId] || undefined
+        }
+
         // Source node - leftmost
         const sourceDefaultPos = { x: startX, y: centerY + 50 }
         newNodes.push({
             id: 'source',
             type: 'source',
             position: getNodePosition('source', sourceDefaultPos),
+            style: getNodeStyle('source'),
             data: {
                 originalImage: pipeline.original_image,
                 onUpload: handleImageUpload,
@@ -207,6 +228,7 @@ function App() {
                 id: step.id,
                 type: 'transform',
                 position: getNodePosition(step.id, defaultPos),
+                style: getNodeStyle(step.id),
                 data: {
                     step,
                     onParamUpdate: handleParamUpdate,
@@ -223,6 +245,7 @@ function App() {
             id: 'output',
             type: 'output',
             position: getNodePosition('output', outputDefaultPos),
+            style: getNodeStyle('output'),
             data: {
                 finalImage: pipeline.final_image,
             },
@@ -344,7 +367,7 @@ function App() {
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
-                    onNodesChange={onNodesChange}
+                    onNodesChange={handleNodesChange}
                     onEdgesChange={onEdgesChange}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}

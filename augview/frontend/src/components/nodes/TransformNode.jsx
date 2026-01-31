@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useCallback } from 'react'
-import { Handle, Position } from 'reactflow'
+import { Handle, Position, NodeResizer } from 'reactflow'
 import { Eye, EyeOff, Check, X, ZoomIn } from 'lucide-react'
 import ImageLightbox from '../ImageLightbox'
 
@@ -116,6 +116,13 @@ function TransformNode({ data, selected }) {
     return (
         <>
             <div className={`transform-node ${selected ? 'selected' : ''} ${!step.enabled ? 'disabled' : ''}`}>
+                <NodeResizer
+                    minWidth={180}
+                    minHeight={200}
+                    isVisible={selected}
+                    lineClassName="node-resizer-line"
+                    handleClassName="node-resizer-handle"
+                />
                 <Handle type="target" position={Position.Left} className="node-handle" />
 
                 {/* Header */}

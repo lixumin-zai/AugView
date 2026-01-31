@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Handle, Position } from 'reactflow'
+import { Handle, Position, NodeResizer } from 'reactflow'
 import { Image as ImageIcon, CheckCircle } from 'lucide-react'
 
 function OutputNode({ data, selected }) {
@@ -7,6 +7,13 @@ function OutputNode({ data, selected }) {
 
     return (
         <div className={`output-node ${selected ? 'selected' : ''}`}>
+            <NodeResizer
+                minWidth={120}
+                minHeight={160}
+                isVisible={selected}
+                lineClassName="node-resizer-line"
+                handleClassName="node-resizer-handle"
+            />
             <Handle type="target" position={Position.Left} className="node-handle output-handle" />
 
             <div className="node-header output-header">

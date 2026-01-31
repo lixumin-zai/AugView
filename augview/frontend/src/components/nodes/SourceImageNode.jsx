@@ -1,5 +1,5 @@
 import { memo, useState, useCallback } from 'react'
-import { Handle, Position } from 'reactflow'
+import { Handle, Position, NodeResizer } from 'reactflow'
 import { Upload, Image as ImageIcon } from 'lucide-react'
 
 function SourceImageNode({ data, selected }) {
@@ -45,6 +45,13 @@ function SourceImageNode({ data, selected }) {
 
     return (
         <div className={`source-node ${selected ? 'selected' : ''}`}>
+            <NodeResizer
+                minWidth={120}
+                minHeight={160}
+                isVisible={selected}
+                lineClassName="node-resizer-line"
+                handleClassName="node-resizer-handle"
+            />
             <div className="node-header source-header">
                 <ImageIcon size={14} />
                 <span>Source Image</span>
