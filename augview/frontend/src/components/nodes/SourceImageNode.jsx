@@ -3,7 +3,7 @@ import { Handle, Position, NodeResizer } from 'reactflow'
 import { Upload, Image as ImageIcon } from 'lucide-react'
 
 function SourceImageNode({ data, selected }) {
-    const { originalImage, onUpload } = data
+    const { originalImage, originalSize, onUpload } = data
     const [isDragover, setIsDragover] = useState(false)
 
     const handleFile = useCallback((file) => {
@@ -71,6 +71,11 @@ function SourceImageNode({ data, selected }) {
                         >
                             <Upload size={12} />
                         </button>
+                        {originalSize && (
+                            <div className="node-image-size nodrag">
+                                {originalSize[0]} × {originalSize[1]}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div

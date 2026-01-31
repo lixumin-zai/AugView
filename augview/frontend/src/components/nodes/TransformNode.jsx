@@ -175,6 +175,11 @@ function TransformNode({ data, selected }) {
                             <div className="node-preview-zoom-hint nodrag">
                                 <ZoomIn size={14} />
                             </div>
+                            {step.output_size && (
+                                <div className="node-image-size nodrag">
+                                    {step.output_size[0]} × {step.output_size[1]}
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className="node-preview-placeholder">

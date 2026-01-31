@@ -3,7 +3,7 @@ import { Handle, Position, NodeResizer } from 'reactflow'
 import { Image as ImageIcon, CheckCircle } from 'lucide-react'
 
 function OutputNode({ data, selected }) {
-    const { finalImage } = data
+    const { finalImage, finalSize } = data
 
     return (
         <div className={`output-node ${selected ? 'selected' : ''}`}>
@@ -23,11 +23,18 @@ function OutputNode({ data, selected }) {
 
             <div className="node-preview output-preview">
                 {finalImage ? (
-                    <img
-                        src={`data:image/png;base64,${finalImage}`}
-                        alt="Output"
-                        className="node-preview-image"
-                    />
+                    <>
+                        <img
+                            src={`data:image/png;base64,${finalImage}`}
+                            alt="Output"
+                            className="node-preview-image"
+                        />
+                        {finalSize && (
+                            <div className="node-image-size nodrag">
+                                {finalSize[0]} × {finalSize[1]}
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="node-preview-placeholder output-placeholder">
                         <ImageIcon size={32} />
@@ -40,3 +47,4 @@ function OutputNode({ data, selected }) {
 }
 
 export default memo(OutputNode)
+

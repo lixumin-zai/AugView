@@ -213,6 +213,7 @@ function App() {
             style: getNodeStyle('source'),
             data: {
                 originalImage: pipeline.original_image,
+                originalSize: pipeline.original_size,
                 onUpload: handleImageUpload,
             },
         })
@@ -248,6 +249,7 @@ function App() {
             style: getNodeStyle('output'),
             data: {
                 finalImage: pipeline.final_image,
+                finalSize: pipeline.final_size,
             },
         })
 
@@ -322,47 +324,8 @@ function App() {
 
     return (
         <div className="app-container">
-            {/* Header */}
-            <header className="app-header">
-                <div className="app-logo">
-                    <Layers size={24} />
-                    <span>AugView</span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {pipeline?.name && (
-                        <span style={{
-                            fontFamily: 'var(--font-heading)',
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.875rem'
-                        }}>
-                            {pipeline.name}
-                        </span>
-                    )}
-
-                    <div className={`status-badge ${connected ? 'status-connected' : 'status-disconnected'}`}>
-                        {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
-                        {connected ? 'Connected' : 'Disconnected'}
-                    </div>
-
-                    <button
-                        className="btn btn-accent"
-                        onClick={handleRerun}
-                        disabled={!pipeline?.original_image || isRunning}
-                        title="Re-run with new random values"
-                    >
-                        {isRunning ? (
-                            <div className="spinner" style={{ width: 16, height: 16 }}></div>
-                        ) : (
-                            <Shuffle size={16} />
-                        )}
-                        Random
-                    </button>
-                </div>
-            </header>
-
             {/* ReactFlow Canvas */}
-            <div className="react-flow-wrapper">
+            <div className="react-flow-wrapper full-height">
                 <EdgeDefs />
                 <ReactFlow
                     nodes={nodes}
@@ -396,6 +359,25 @@ function App() {
                         size={1}
                     />
                 </ReactFlow>
+
+                {/* Floating Toolbar */}
+                <div className="floating-toolbar">
+                    <div className={`toolbar-status ${connected ? 'connected' : 'disconnected'}`}>
+                        {connected ? <Wifi size={14} /> : <WifiOff size={14} />}
+                    </div>
+                    <button
+                        className="toolbar-btn"
+                        onClick={handleRerun}
+                        disabled={!pipeline?.original_image || isRunning}
+                        title="Re-run with new random values"
+                    >
+                        {isRunning ? (
+                            <div className="spinner" style={{ width: 16, height: 16 }}></div>
+                        ) : (
+                            <Shuffle size={18} />
+                        )}
+                    </button>
+                </div>
             </div>
         </div>
     )

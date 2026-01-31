@@ -65,6 +65,7 @@ class TransformStep:
     param_specs: Dict[str, Dict[str, Any]]  # Parameter specifications for UI
     input_image: Optional[str] = None  # Base64 encoded
     output_image: Optional[str] = None  # Base64 encoded
+    output_size: Optional[List[int]] = None  # [width, height]
     enabled: bool = True
     applied: bool = True  # Whether transform was actually applied (for probability)
     probability: Optional[float] = None  # The 'p' value if exists
@@ -78,6 +79,7 @@ class TransformStep:
             "param_specs": convert_to_native(self.param_specs),
             "input_image": self.input_image,
             "output_image": self.output_image,
+            "output_size": self.output_size,
             "enabled": bool(self.enabled),
             "applied": bool(self.applied),
             "probability": float(self.probability) if self.probability is not None else None,
@@ -91,7 +93,9 @@ class Pipeline:
     name: str
     steps: List[TransformStep] = field(default_factory=list)
     original_image: Optional[str] = None  # Base64 encoded
+    original_size: Optional[List[int]] = None  # [width, height]
     final_image: Optional[str] = None  # Base64 encoded
+    final_size: Optional[List[int]] = None  # [width, height]
     
     def to_dict(self) -> Dict:
         return {
@@ -99,7 +103,9 @@ class Pipeline:
             "name": self.name,
             "steps": [step.to_dict() for step in self.steps],
             "original_image": self.original_image,
+            "original_size": self.original_size,
             "final_image": self.final_image,
+            "final_size": self.final_size,
         }
 
 
@@ -303,6 +309,7 @@ class AugView:
         self._last_image = image.copy()
         
         self.pipeline.original_image = self.image_to_base64(image)
+        self.pipeline.original_size = [image.shape[1], image.shape[0]]  # [width, height]
         current_image = image.copy()
         
         for transform, step in self._transforms:
@@ -310,6 +317,7 @@ class AugView:
             if not step.enabled:
                 step.input_image = self.image_to_base64(current_image)
                 step.output_image = self.image_to_base64(current_image)
+                step.output_size = [current_image.shape[1], current_image.shape[0]]  # [width, height]
                 step.applied = False
                 continue
             
@@ -353,6 +361,7 @@ class AugView:
                     current_image = current_image[:, :, :3]
                 
                 step.output_image = self.image_to_base64(current_image)
+                step.output_size = [current_image.shape[1], current_image.shape[0]]  # [width, height]
                 
                 # Check if transform was actually applied (for probability-based transforms)
                 step.applied = self._check_transform_applied(input_for_comparison, current_image)
@@ -360,9 +369,11 @@ class AugView:
             except Exception as e:
                 print(f"Error in transform {step.name}: {e}")
                 step.output_image = step.input_image
+                step.output_size = None
                 step.applied = False
         
         self.pipeline.final_image = self.image_to_base64(current_image)
+        self.pipeline.final_size = [current_image.shape[1], current_image.shape[0]]  # [width, height]
         self._notify_update()
         
         return current_image
