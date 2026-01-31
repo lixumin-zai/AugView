@@ -2,6 +2,12 @@
 
 Image Augmentation Pipeline Visualizer - A Python toolkit for visualizing image augmentation pipelines with a beautiful web-based interactive UI.
 
+Build with Antigrevity
+
+<p align="center">
+  <img src="image.png" alt="alt text">
+</p>
+
 ## Features
 
 - 🐍 **Python Decorator API** - Wrap existing pipelines with minimal code changes

@@ -280,6 +280,7 @@ async def serve_frontend():
 
 # Mount static files if they exist
 if frontend_path.exists():
+    print(f"Mounting static files from {frontend_path}")
     app.mount("/assets", StaticFiles(directory=frontend_path / "assets"), name="assets")
 
 
