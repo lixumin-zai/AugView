@@ -139,8 +139,8 @@ class AugView:
                 print(f"Callback error: {e}")
     
     @staticmethod
-    def image_to_base64(image: Union[Image.Image, np.ndarray]) -> str:
-        """Convert image to base64 string."""
+    def image_to_base64(image: Union[Image.Image, np.ndarray], max_size: int = 1000, quality: int = 90) -> str:
+        """Convert image to base64 string with optimization for speed."""
         if isinstance(image, np.ndarray):
             # Handle different array shapes
             if len(image.shape) == 2:
@@ -149,8 +149,15 @@ class AugView:
                 image = image[:, :, :3]
             image = Image.fromarray(image.astype(np.uint8))
         
+        # Resize if too large (for faster encoding and smaller payload)
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+            image = image.resize(new_size, Image.LANCZOS)
+        
         buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
+        # Use JPEG for faster encoding (5-10x faster than PNG)
+        image.save(buffer, format="JPEG", quality=quality, optimize=True)
         return base64.b64encode(buffer.getvalue()).decode("utf-8")
     
     @staticmethod
