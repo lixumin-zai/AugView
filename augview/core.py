@@ -251,15 +251,19 @@ class AugView:
     
     def add_transform(self, transform: Any, name: Optional[str] = None) -> TransformStep:
         """Add a transform to the pipeline."""
-        # Detect transform type
+        # Detect transform type by checking class inheritance
         transform_type = "custom"
         class_name = transform.__class__.__name__
-        module = transform.__class__.__module__
         
-        if "albumentations" in module:
-            transform_type = "albumentations"
-        elif "torchvision" in module:
-            transform_type = "torchvision"
+        # Check class hierarchy (MRO) for albumentations or torchvision base classes
+        for cls in transform.__class__.__mro__:
+            module = cls.__module__
+            if "albumentations" in module:
+                transform_type = "albumentations"
+                break
+            elif "torchvision" in module:
+                transform_type = "torchvision"
+                break
         
         probability = self._get_probability(transform)
         
