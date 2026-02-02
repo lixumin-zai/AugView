@@ -232,21 +232,60 @@ class AugView:
         
         return specs
     
+    def _serialize_value(self, value: Any) -> Any:
+        """Recursively serialize a value for JSON compatibility."""
+        if value is None:
+            return None
+        if isinstance(value, (int, float, bool, str)):
+            return value
+        if isinstance(value, (tuple, list)):
+            return [self._serialize_value(v) for v in value]
+        if isinstance(value, dict):
+            return {k: self._serialize_value(v) for k, v in value.items() 
+                    if isinstance(k, str) and not k.startswith('_')}
+        if isinstance(value, np.ndarray):
+            return value.tolist()
+        if isinstance(value, np.integer):
+            return int(value)
+        if isinstance(value, np.floating):
+            return float(value)
+        # Try to convert enum-like values
+        if hasattr(value, 'value'):
+            return self._serialize_value(value.value)
+        if hasattr(value, 'name') and hasattr(value, '__class__'):
+            return str(value.name)
+        return None  # Skip non-serializable values
+
     def _get_transform_params(self, transform: Any) -> Dict[str, Any]:
         """Extract current parameter values from a transform."""
         params = {}
         
+        # Common param names to prioritize
+        priority_attrs = ['p', 'scale', 'ratio', 'limit', 'shift', 'range', 'size', 
+                          'degrees', 'translate', 'brightness', 'contrast', 'saturation', 
+                          'hue', 'blur', 'sigma', 'kernel', 'alpha', 'strength', 'var']
+        
         # Get stored attributes
         for attr in dir(transform):
-            if not attr.startswith('_'):
-                try:
-                    value = getattr(transform, attr)
-                    if not callable(value) and not isinstance(value, type):
-                        # Only include serializable values
-                        if isinstance(value, (int, float, bool, str, tuple, list)):
-                            params[attr] = value
-                except Exception:
-                    pass
+            if attr.startswith('_'):
+                continue
+            # Skip if it's a common internal/method attribute
+            if attr in ('get_params', 'get_transform_init_args', 'get_transform_init_args_names',
+                        'apply', 'apply_to_mask', 'targets', 'additional_targets', 'replay_mode',
+                        'save_key', 'id_', 'transforms', 'processors', 'available_keys'):
+                continue
+            try:
+                value = getattr(transform, attr)
+                if callable(value) or isinstance(value, type):
+                    continue
+                    
+                serialized = self._serialize_value(value)
+                if serialized is not None:
+                    # Only include meaningful values
+                    if not (isinstance(serialized, list) and len(serialized) == 0):
+                        params[attr] = serialized
+            except Exception:
+                pass
         
         return params
     
