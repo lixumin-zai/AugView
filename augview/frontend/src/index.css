@@ -1139,6 +1139,43 @@ input[type="text"]:focus {
   transform: translateX(16px);
 }
 
+/* Range Parameter Inputs */
+.node-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.node-range-input {
+  width: 60px;
+  padding: 4px 6px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-align: center;
+  transition: border-color var(--transition-fast);
+}
+
+.node-range-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.node-range-input::-webkit-inner-spin-button,
+.node-range-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.node-range-separator {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
 /* Node Preview */
 .node-preview {
   padding: var(--spacing-sm);

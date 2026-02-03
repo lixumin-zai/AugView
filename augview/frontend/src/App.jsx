@@ -24,10 +24,7 @@ const edgeTypes = {
     animated: AnimatedEdge,
 }
 
-const NODE_WIDTH = 280
-const NODE_HEIGHT_BASE = 280
-const NODE_SPACING_X = 100
-const NODE_SPACING_Y = 40
+
 
 function App() {
     const [pipeline, setPipeline] = useState(null)
@@ -192,6 +189,24 @@ function App() {
         // Layout constants
         const startX = 50
         const centerY = 120
+        const NODE_SPACING_X = 80 // Dynamic spacing
+        const BASE_WIDTH = 280
+        const MIN_WIDTH = 240
+        const MAX_WIDTH = 500
+
+        // Helper to calculate smart width based on aspect ratio
+        const calculateSmartWidth = (size) => {
+            if (!size || !size[0] || !size[1]) return BASE_WIDTH
+            const ratio = size[0] / size[1]
+            let width = BASE_WIDTH
+            if (ratio > 1) {
+                // Landscape: scale width
+                // Dampen the ratio effect so it doesn't get too wide
+                const factor = 1 + (ratio - 1) * 0.6
+                width = BASE_WIDTH * factor
+            }
+            return Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH)
+        }
 
         // Get default position for a node
         const getNodePosition = (nodeId, defaultPos) => {
@@ -199,18 +214,29 @@ function App() {
             return nodePositionsRef.current[nodeId] || defaultPos
         }
 
-        // Get stored size for a node (if user resized it)
-        const getNodeStyle = (nodeId) => {
-            return nodeSizesRef.current[nodeId] || undefined
+        // Get stored size for a node or calculate smart size
+        const getNodeStyle = (nodeId, size) => {
+            // If user manually resized, use that
+            if (nodeSizesRef.current[nodeId]) {
+                return nodeSizesRef.current[nodeId]
+            }
+            // Otherwise use smart calculation
+            const width = calculateSmartWidth(size)
+            return { width }
         }
 
+        let currentX = startX
+
         // Source node - leftmost
-        const sourceDefaultPos = { x: startX, y: centerY + 50 }
+        const sourceSize = pipeline.original_size
+        const sourceWidth = getNodeStyle('source', sourceSize).width || BASE_WIDTH
+        const sourceDefaultPos = { x: currentX, y: centerY + 50 }
+
         newNodes.push({
             id: 'source',
             type: 'source',
             position: getNodePosition('source', sourceDefaultPos),
-            style: getNodeStyle('source'),
+            style: getNodeStyle('source', sourceSize),
             data: {
                 originalImage: pipeline.original_image,
                 originalSize: pipeline.original_size,
@@ -218,35 +244,39 @@ function App() {
             },
         })
 
-        // Transform nodes - horizontal line after source
-        const transformStartX = startX + 220 // After source node
-        steps.forEach((step, index) => {
-            const x = transformStartX + index * (NODE_WIDTH + NODE_SPACING_X)
-            const y = centerY
-            const defaultPos = { x, y }
+        currentX += sourceWidth + NODE_SPACING_X
+
+        // Transform nodes - horizontal line
+        steps.forEach((step) => {
+            const stepSize = step.output_size || pipeline.original_size // Fallback
+            const stepWidth = getNodeStyle(step.id, stepSize).width || BASE_WIDTH
+
+            const defaultPos = { x: currentX, y: centerY }
 
             newNodes.push({
                 id: step.id,
                 type: 'transform',
                 position: getNodePosition(step.id, defaultPos),
-                style: getNodeStyle(step.id),
+                style: getNodeStyle(step.id, stepSize), // Pass size for calculation
                 data: {
                     step,
                     onParamUpdate: handleParamUpdate,
                     onToggleStep: handleToggleStep,
                 },
             })
+
+            currentX += stepWidth + NODE_SPACING_X
         })
 
-        // Output node - rightmost, after all transforms
-        const outputX = transformStartX + steps.length * (NODE_WIDTH + NODE_SPACING_X)
-        const outputDefaultPos = { x: outputX, y: centerY + 50 }
+        // Output node - rightmost
+        const outputSize = pipeline.final_size
+        const outputDefaultPos = { x: currentX, y: centerY + 50 }
 
         newNodes.push({
             id: 'output',
             type: 'output',
             position: getNodePosition('output', outputDefaultPos),
-            style: getNodeStyle('output'),
+            style: getNodeStyle('output', outputSize),
             data: {
                 finalImage: pipeline.final_image,
                 finalSize: pipeline.final_size,
